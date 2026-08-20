@@ -422,7 +422,7 @@
     infographicDownload.className = 'infographic-download';
     infographicDownload.href = 'assets/ELP-2026-original-infographics.zip';
     infographicDownload.download = 'ELP-2026-original-infographics.zip';
-    infographicDownload.setAttribute('aria-label', 'Download all eight original ELP infographics as a ZIP file');
+    infographicDownload.setAttribute('aria-label', 'Download all nine original ELP infographics as a ZIP file');
     infographicDownload.innerHTML = '<span aria-hidden="true">↓</span><span><b>Infographics</b><small>Download all · ZIP</small></span>';
 
     bar.querySelector('.theme-toggle')?.before(viewSwitch, infographicDownload);
