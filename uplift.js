@@ -83,6 +83,15 @@
   });
   document.querySelectorAll('.story-svg').forEach((svg) => svg.setAttribute('focusable', 'false'));
 
+  const disclaimerText = 'For reference purposes only. This publication makes no claim of ownership or authorship of the course content. All intellectual property and associated rights remain with their respective authors, presenters and owners.';
+  if (main && !main.querySelector('.reference-disclaimer')) {
+    const disclaimer = document.createElement('footer');
+    disclaimer.className = 'reference-disclaimer';
+    disclaimer.setAttribute('aria-label', 'Content disclaimer');
+    disclaimer.innerHTML = `<b>Content disclaimer</b><p>${disclaimerText}</p>`;
+    main.append(disclaimer);
+  }
+
   /* Cross-reference search: Week, Day, Section, Match. */
   const results = document.createElement('section');
   results.className = 'search-results';
@@ -424,7 +433,7 @@
       </div>
       <button class="deck-nav deck-next" type="button" aria-label="Next card">→</button>
     </div>
-    <footer class="deck-footer"><span class="deck-counter"></span><div class="deck-progress" aria-hidden="true"><i></i></div><span class="deck-hint">← → keys · swipe</span></footer>
+    <footer class="deck-footer"><span class="deck-counter"></span><div class="deck-progress" aria-hidden="true"><i></i></div><span class="deck-hint">← → keys · swipe</span><small>${disclaimerText}</small></footer>
     <div class="deck-empty" hidden><b>No cards found</b><span>Try another word or clear the Week filter.</span></div>`;
     document.body.append(deck);
 
