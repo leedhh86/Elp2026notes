@@ -1,0 +1,7 @@
+# ELP 2026 shared-password gate
+# Password value must be set in the Netlify UI as PROTECTED_PAGE_PASSWORD.
+# Do not store the password in this file.
+
+[[edge_functions]]
+  function = "password-gate"
+  path = "/*"
