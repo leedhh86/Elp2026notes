@@ -273,6 +273,43 @@ function htmlResponse(html, status = 200, extraHeaders = {}) {
   });
 }
 
+function successHtml(returnTo) {
+  const target = JSON.stringify(returnTo).replace(/</g, "\\u003c");
+  const safeLink = returnTo.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f2c57">
+  <title>Opening ELP 2026…</title>
+  <style>
+    :root{color-scheme:light dark}
+    *{box-sizing:border-box}
+    html,body{min-height:100%;margin:0}
+    body{display:grid;place-items:center;padding:24px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#102c57;background:linear-gradient(145deg,#eef3f6,#f8f4e9)}
+    main{text-align:center}
+    .mark{width:54px;height:54px;margin:0 auto 18px;border:4px solid rgba(31,118,94,.2);border-top-color:#1f765e;border-radius:50%;animation:turn .7s linear infinite}
+    h1{margin:0 0 7px;font-size:clamp(1.45rem,5vw,2rem);letter-spacing:-.025em}
+    p{margin:0;color:#667386}
+    a{color:inherit;font-weight:750}
+    @keyframes turn{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.mark{animation:none;border-color:#1f765e}}
+    @media(prefers-color-scheme:dark){body{color:#eef5ff;background:linear-gradient(145deg,#09111a,#0e1722)}p{color:#aab7c7}}
+  </style>
+</head>
+<body>
+  <main aria-live="polite">
+    <div class="mark" aria-hidden="true"></div>
+    <h1>Opening your reference…</h1>
+    <p>Please wait. <noscript><a href="${safeLink}">Continue to ELP 2026</a></noscript></p>
+  </main>
+  <script>window.location.replace(${target});</script>
+</body>
+</html>`;
+}
+
 export default async (request, context) => {
   const configuredPassword = Netlify.env.get("PROTECTED_PAGE_PASSWORD");
   const url = new URL(request.url);
@@ -316,17 +353,13 @@ export default async (request, context) => {
     const expectedHash = await sha256Bytes(configuredPassword);
 
     if (constantTimeEqual(submittedHash, expectedHash)) {
-      // Netlify can briefly resolve `/` before the SPA rewrite immediately
-      // after the auth POST. Send root logins to the concrete entry file so
-      // the first authenticated navigation cannot fall through to a 404.
+      // Complete the POST before navigating. The browser stores Set-Cookie
+      // with this response, then the page requests the protected entry file
+      // as an authenticated GET. This avoids Netlify's transient POST redirect
+      // handoff that can otherwise render its 404 page until a refresh.
       const authenticatedReturnTo = returnTo === "/" ? "/index.html" : returnTo;
-      return new Response(null, {
-        status: 303,
-        headers: {
-          "location": authenticatedReturnTo,
-          "set-cookie": sessionCookie(expectedSession),
-          "cache-control": "no-store, max-age=0",
-        },
+      return htmlResponse(successHtml(authenticatedReturnTo), 200, {
+        "set-cookie": sessionCookie(expectedSession),
       });
     }
 
