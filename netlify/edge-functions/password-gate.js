@@ -316,10 +316,14 @@ export default async (request, context) => {
     const expectedHash = await sha256Bytes(configuredPassword);
 
     if (constantTimeEqual(submittedHash, expectedHash)) {
+      // Netlify can briefly resolve `/` before the SPA rewrite immediately
+      // after the auth POST. Send root logins to the concrete entry file so
+      // the first authenticated navigation cannot fall through to a 404.
+      const authenticatedReturnTo = returnTo === "/" ? "/index.html" : returnTo;
       return new Response(null, {
         status: 303,
         headers: {
-          "location": returnTo,
+          "location": authenticatedReturnTo,
           "set-cookie": sessionCookie(expectedSession),
           "cache-control": "no-store, max-age=0",
         },
