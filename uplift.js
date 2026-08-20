@@ -363,6 +363,178 @@
     </div>`);
   }
 
+  /* Alternate cross-program card deck. This is generated from the canonical
+     day articles, so the deck can never become a second, divergent content source. */
+  const sourceArticles = [...document.querySelectorAll('.day-panel .ref.search-item')];
+  const deckRecords = sourceArticles.map((article, index) => {
+    const panel = article.closest('.day-panel');
+    const body = article.querySelector('.ref-body')?.cloneNode(true);
+    body?.querySelectorAll('[id],button').forEach((node) => node.removeAttribute?.('id'));
+    const heading = article.querySelector('h3')?.textContent?.trim() || `Reference card ${index + 1}`;
+    const summary = article.querySelector('.ref-head p')?.textContent?.trim() || '';
+    const label = dayLabel(panel?.dataset.week || 'week1', panel?.dataset.day || 'overview');
+    return {
+      article,
+      bodyHtml: body?.innerHTML || '',
+      day: panel?.dataset.day || 'overview',
+      heading,
+      href: article.id ? `#${article.id}` : `#${panel?.id || ''}`,
+      index,
+      panelId: panel?.id || '',
+      search: `${heading} ${summary} ${article.dataset.search || ''}`.toLowerCase(),
+      summary,
+      week: panel?.dataset.week || 'week1',
+      weekName: label.weekName,
+      dayName: label.dayName,
+    };
+  });
+
+  if (bar && deckRecords.length) {
+    const deckToggle = document.createElement('button');
+    deckToggle.className = 'deck-toggle';
+    deckToggle.type = 'button';
+    deckToggle.innerHTML = '<span aria-hidden="true">▤</span><span>Card deck</span>';
+    deckToggle.setAttribute('aria-label', 'Open cross-program card deck');
+    bar.querySelector('.theme-toggle')?.before(deckToggle);
+
+    const deck = document.createElement('section');
+    deck.className = 'deck-view';
+    deck.setAttribute('aria-hidden', 'true');
+    deck.innerHTML = `<header class="deck-header">
+      <div class="deck-brand"><span>ELP 2026 · Alternate view</span><h2>Leadership reference deck</h2><p>Every section, one focused card at a time.</p></div>
+      <button class="deck-close" type="button" aria-label="Return to Week and Day view">Return to day view <span aria-hidden="true">×</span></button>
+    </header>
+    <div class="deck-tools">
+      <label class="deck-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Find any concept…" aria-label="Search every card"></label>
+      <div class="deck-filters" role="group" aria-label="Filter cards by week">
+        <button class="active" type="button" data-deck-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-deck-filter="week1" aria-pressed="false">Foundation Week</button>
+        <button type="button" data-deck-filter="week2" aria-pressed="false">Week 2</button>
+      </div>
+    </div>
+    <div class="deck-workspace">
+      <button class="deck-nav deck-prev" type="button" aria-label="Previous card">←</button>
+      <div class="deck-stack">
+        <div class="deck-card deck-card--back" aria-hidden="true"></div>
+        <article class="deck-card" tabindex="0" aria-live="polite">
+          <div class="deck-card__meta"></div><h3></h3><p class="deck-card__summary"></p>
+          <div class="deck-card__body"></div>
+          <footer><button class="deck-context" type="button">Open in day view ↗</button></footer>
+        </article>
+      </div>
+      <button class="deck-nav deck-next" type="button" aria-label="Next card">→</button>
+    </div>
+    <footer class="deck-footer"><span class="deck-counter"></span><div class="deck-progress" aria-hidden="true"><i></i></div><span class="deck-hint">← → keys · swipe</span></footer>
+    <div class="deck-empty" hidden><b>No cards found</b><span>Try another word or clear the Week filter.</span></div>`;
+    document.body.append(deck);
+
+    const deckSearch = deck.querySelector('.deck-search input');
+    const deckCard = deck.querySelector('.deck-card:not(.deck-card--back)');
+    const deckBody = deck.querySelector('.deck-card__body');
+    const deckMeta = deck.querySelector('.deck-card__meta');
+    const deckHeading = deckCard.querySelector('h3');
+    const deckSummary = deck.querySelector('.deck-card__summary');
+    const deckCounter = deck.querySelector('.deck-counter');
+    const deckProgress = deck.querySelector('.deck-progress i');
+    const deckEmpty = deck.querySelector('.deck-empty');
+    const prev = deck.querySelector('.deck-prev');
+    const next = deck.querySelector('.deck-next');
+    let deckFilter = 'all';
+    let deckMatches = [...deckRecords];
+    let deckPosition = 0;
+    let deckOpener = null;
+
+    const updateDeckMatches = () => {
+      const query = deckSearch.value.trim().toLowerCase();
+      deckMatches = deckRecords.filter((record) => (deckFilter === 'all' || record.week === deckFilter) && (!query || record.search.includes(query)));
+      deckPosition = 0;
+      renderDeckCard('none');
+    };
+    const renderDeckCard = (direction = 'next') => {
+      const record = deckMatches[deckPosition];
+      const hasCards = Boolean(record);
+      deckEmpty.hidden = hasCards;
+      deck.querySelector('.deck-workspace').hidden = !hasCards;
+      deck.querySelector('.deck-footer').hidden = !hasCards;
+      if (!record) return;
+      deckCard.classList.remove('arrive-next', 'arrive-prev');
+      void deckCard.offsetWidth;
+      if (direction !== 'none' && !reducedMotion.matches) deckCard.classList.add(direction === 'prev' ? 'arrive-prev' : 'arrive-next');
+      deckMeta.innerHTML = `<span>${record.weekName}</span><b>${record.dayName}</b><em>Card ${deckPosition + 1}</em>`;
+      deckHeading.textContent = record.heading;
+      deckSummary.textContent = record.summary;
+      deckSummary.hidden = !record.summary;
+      deckBody.innerHTML = record.bodyHtml;
+      deckBody.scrollTop = 0;
+      deckCounter.textContent = `${deckPosition + 1} of ${deckMatches.length} cards`;
+      deckProgress.style.width = `${((deckPosition + 1) / deckMatches.length) * 100}%`;
+      prev.disabled = deckMatches.length < 2;
+      next.disabled = deckMatches.length < 2;
+    };
+    const moveDeck = (step) => {
+      if (deckMatches.length < 2) return;
+      deckPosition = (deckPosition + step + deckMatches.length) % deckMatches.length;
+      renderDeckCard(step < 0 ? 'prev' : 'next');
+    };
+    const openDeck = () => {
+      deckOpener = document.activeElement;
+      deck.classList.add('open');
+      deck.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('deck-open');
+      main?.setAttribute('inert', '');
+      appbar?.setAttribute('inert', '');
+      deckToggle.setAttribute('aria-pressed', 'true');
+      renderDeckCard('none');
+      window.setTimeout(() => deckSearch.focus(), 0);
+    };
+    const closeDeck = () => {
+      deck.classList.remove('open');
+      deck.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('deck-open');
+      main?.removeAttribute('inert');
+      appbar?.removeAttribute('inert');
+      deckToggle.setAttribute('aria-pressed', 'false');
+      deckOpener?.focus?.();
+    };
+    deckToggle.addEventListener('click', openDeck);
+    deck.querySelector('.deck-close').addEventListener('click', closeDeck);
+    deckSearch.addEventListener('input', updateDeckMatches);
+    deck.querySelectorAll('[data-deck-filter]').forEach((button) => button.addEventListener('click', () => {
+      deckFilter = button.dataset.deckFilter;
+      deck.querySelectorAll('[data-deck-filter]').forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      updateDeckMatches();
+    }));
+    prev.addEventListener('click', () => moveDeck(-1));
+    next.addEventListener('click', () => moveDeck(1));
+    deck.querySelector('.deck-context').addEventListener('click', () => {
+      const record = deckMatches[deckPosition];
+      closeDeck();
+      document.querySelector(`.week-btn[data-week="${record.week}"]`)?.click();
+      document.querySelector(`.day-btn[data-day="${record.day}"]`)?.click();
+      window.setTimeout(() => {
+        history.replaceState(null, '', record.href);
+        document.querySelector(record.href)?.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'start' });
+      }, 80);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (!deck.classList.contains('open')) return;
+      if (event.key === 'Escape') closeDeck();
+      if (event.key === 'ArrowLeft' && document.activeElement !== deckSearch) moveDeck(-1);
+      if (event.key === 'ArrowRight' && document.activeElement !== deckSearch) moveDeck(1);
+    });
+    let touchStart = 0;
+    deckCard.addEventListener('pointerdown', (event) => { touchStart = event.clientX; });
+    deckCard.addEventListener('pointerup', (event) => {
+      const distance = event.clientX - touchStart;
+      if (Math.abs(distance) > 60) moveDeck(distance > 0 ? -1 : 1);
+    });
+    renderDeckCard('none');
+  }
+
   /* Keep touch rails oriented to the active location. */
   const centerActiveRailItems = () => {
     if (!window.matchMedia('(max-width:1120px)').matches) return;
