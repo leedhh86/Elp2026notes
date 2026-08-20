@@ -399,19 +399,40 @@
   });
 
   if (bar && deckRecords.length) {
+    const viewSwitch = document.createElement('div');
+    viewSwitch.className = 'view-switch';
+    viewSwitch.setAttribute('role', 'group');
+    viewSwitch.setAttribute('aria-label', 'Choose reference view');
+
+    const dayViewButton = document.createElement('button');
+    dayViewButton.className = 'view-option active';
+    dayViewButton.type = 'button';
+    dayViewButton.setAttribute('aria-pressed', 'true');
+    dayViewButton.innerHTML = '<span aria-hidden="true">☷</span><span><b>Day view</b><small>Browse by week &amp; day</small></span>';
+
     const deckToggle = document.createElement('button');
-    deckToggle.className = 'deck-toggle';
+    deckToggle.className = 'view-option deck-toggle';
     deckToggle.type = 'button';
-    deckToggle.innerHTML = '<span aria-hidden="true">▤</span><span>Card deck</span>';
-    deckToggle.setAttribute('aria-label', 'Open cross-program card deck');
-    bar.querySelector('.theme-toggle')?.before(deckToggle);
+    deckToggle.innerHTML = '<span aria-hidden="true">▤</span><span><b>Flip cards</b><small>Focus on one concept</small></span>';
+    deckToggle.setAttribute('aria-label', 'Switch to flip card view');
+    deckToggle.setAttribute('aria-pressed', 'false');
+    viewSwitch.append(dayViewButton, deckToggle);
+
+    const infographicDownload = document.createElement('a');
+    infographicDownload.className = 'infographic-download';
+    infographicDownload.href = 'assets/ELP-2026-original-infographics.zip';
+    infographicDownload.download = 'ELP-2026-original-infographics.zip';
+    infographicDownload.setAttribute('aria-label', 'Download all eight original ELP infographics as a ZIP file');
+    infographicDownload.innerHTML = '<span aria-hidden="true">↓</span><span><b>Infographics</b><small>Download all · ZIP</small></span>';
+
+    bar.querySelector('.theme-toggle')?.before(viewSwitch, infographicDownload);
 
     const deck = document.createElement('section');
     deck.className = 'deck-view';
     deck.setAttribute('aria-hidden', 'true');
     deck.innerHTML = `<header class="deck-header">
       <div class="deck-brand"><span>ELP 2026 · Alternate view</span><h2>Leadership reference deck</h2><p>Every section, one focused card at a time.</p></div>
-      <button class="deck-close" type="button" aria-label="Return to Week and Day view">Return to day view <span aria-hidden="true">×</span></button>
+      <button class="deck-close" type="button" aria-label="Switch to Day view">☷ <span>Day view</span></button>
     </header>
     <div class="deck-tools">
       <label class="deck-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Find any concept…" aria-label="Search every card"></label>
@@ -493,6 +514,9 @@
       main?.setAttribute('inert', '');
       appbar?.setAttribute('inert', '');
       deckToggle.setAttribute('aria-pressed', 'true');
+      dayViewButton.setAttribute('aria-pressed', 'false');
+      dayViewButton.classList.remove('active');
+      deckToggle.classList.add('active');
       renderDeckCard('none');
       window.setTimeout(() => deckSearch.focus(), 0);
     };
@@ -503,9 +527,13 @@
       main?.removeAttribute('inert');
       appbar?.removeAttribute('inert');
       deckToggle.setAttribute('aria-pressed', 'false');
+      dayViewButton.setAttribute('aria-pressed', 'true');
+      dayViewButton.classList.add('active');
+      deckToggle.classList.remove('active');
       deckOpener?.focus?.();
     };
     deckToggle.addEventListener('click', openDeck);
+    dayViewButton.addEventListener('click', closeDeck);
     deck.querySelector('.deck-close').addEventListener('click', closeDeck);
     deckSearch.addEventListener('input', updateDeckMatches);
     deck.querySelectorAll('[data-deck-filter]').forEach((button) => button.addEventListener('click', () => {
