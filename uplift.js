@@ -295,6 +295,74 @@
     });
   });
 
+  /* Week 1 course-screen uplift: preserve the original infographic assets while
+     translating the photographed models into legible, responsive web-native views. */
+  const stressPlaceholder = document.querySelector('#w1d2-stress .mini-curve');
+  if (stressPlaceholder) {
+    stressPlaceholder.outerHTML = `<div class="adaptive-range" role="img" aria-label="Disequilibrium over time. Technical problems settle below the threshold of learning; work avoidance falls out of the productive range; adaptive work remains between the threshold of learning and limit of tolerance until a larger adaptive challenge.">
+      <div class="adaptive-range__plot">
+        <span class="adaptive-range__limit">Limit of tolerance</span>
+        <span class="adaptive-range__threshold">Threshold of learning</span>
+        <span class="adaptive-range__band">Productive range of stress</span>
+        <svg aria-hidden="true" viewBox="0 0 900 330" preserveAspectRatio="none">
+          <path class="adaptive-range__line" d="M20 284 C105 280 125 255 155 84 C175 16 250 8 285 118 C320 212 350 126 375 160 C400 205 425 104 448 155 C475 220 500 90 525 145 C550 205 578 106 610 154 C638 200 665 95 690 145 L700 285 C745 302 810 304 880 302"/>
+          <path class="adaptive-range__avoid" d="M286 122 C325 224 395 245 520 235"/>
+        </svg>
+        <span class="adaptive-range__technical">Technical problem</span>
+        <span class="adaptive-range__avoid-label">Work avoidance</span>
+        <span class="adaptive-range__adaptive">Adaptive challenge</span>
+        <span class="adaptive-range__time">Time →</span>
+      </div>
+    </div>`;
+  }
+
+  const challengeBody = document.querySelector('#w1d2-challenges .ref-body');
+  if (challengeBody && !challengeBody.querySelector('.human-capability-signal')) {
+    challengeBody.insertAdjacentHTML('beforeend', `<aside class="human-capability-signal" aria-label="Human capability signal">
+      <div><strong>9 in 10</strong><span>global executives say soft skills are more important than ever.</span><i aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><em></em></i></div>
+      <div><strong>70%</strong><span>of global executives say soft skills are more valuable than AI skills.</span><i class="signal-ring" aria-hidden="true"></i></div>
+    </aside>`);
+  }
+
+  document.querySelector('#w1d2-feedback .numbered')?.classList.add('feedback-ladder');
+  document.querySelector('#w1d3-lever .numbered')?.classList.add('lever-track');
+  const strengthSpectrum = document.querySelector('#w1d3-and .pairs');
+  if (strengthSpectrum) {
+    strengthSpectrum.classList.add('strength-spectrum');
+    strengthSpectrum.querySelectorAll('span').forEach((pair) => {
+      const [left, right] = pair.textContent.split('↔').map((part) => part.trim());
+      if (left && right) pair.innerHTML = `<b>${left}</b><i aria-hidden="true">∞</i><b>${right}</b>`;
+    });
+  }
+
+  const polarityMapBody = document.querySelector('#w1d3-map .ref-body');
+  if (polarityMapBody && !polarityMapBody.querySelector('.team-polarity')) {
+    polarityMapBody.insertAdjacentHTML('beforeend', `<div class="team-polarity" aria-label="Leadership team polarity between people focus and market focus">
+      <div class="team-polarity__purpose">Greater purpose <strong>Lead in market share while valuing people</strong></div>
+      <div class="team-polarity__pole"><b>People focused</b><span class="up">Value people and create people-oriented process</span><span class="down">Loss of market share and weak business results</span></div>
+      <div class="team-polarity__and">AND</div>
+      <div class="team-polarity__pole"><b>Market focused</b><span class="up">Focus on leading in market share</span><span class="down">People feel like cogs in a machine, uncared for</span></div>
+      <div class="team-polarity__fear">Deeper fear <strong>Neither people nor performance is sustained</strong></div>
+    </div>`);
+  }
+
+  const eventsBody = document.querySelector('#w1d4-events .ref-body');
+  if (eventsBody && !eventsBody.querySelector('.development-shift')) {
+    eventsBody.insertAdjacentHTML('beforeend', `<div class="development-shift" aria-label="Shift in how personal growth at work is conceived">
+      <div><small>20th-century answer</small><b>“High potentials”</b><span>Coaching, leadership programs, off-sites and corporate universities</span><span>At special times</span><span>Technical skill-sets</span></div>
+      <i aria-hidden="true">→</i>
+      <div><small>21st-century answer</small><b>Everyone</b><b>Together at work</b><b>Continuous</b><b>Technical and adaptive skill-sets &amp; mind-sets</b></div>
+    </div>`);
+  }
+
+  const stretchBody = document.querySelector('#w1d4-stretch .ref-body');
+  if (stretchBody && !stretchBody.querySelector('.lean-spectrum')) {
+    stretchBody.insertAdjacentHTML('beforeend', `<div class="lean-spectrum">
+      <div><h4>Overly confident — increase self-regulation</h4><ol><li>Listen more; be last to speak</li><li>Be less aggressive / slower to launch</li><li>Be more vulnerable</li><li>Be more disciplined</li><li>Take more advice</li><li>Nurture more</li></ol></div>
+      <div><h4>Overly humble — increase self-expression</h4><ol><li>Speak up more; be first to speak</li><li>Be more aggressive / quicker to launch</li><li>Be more courageous</li><li>Be more optimistic</li><li>Give more advice</li><li>Coach more</li></ol></div>
+    </div>`);
+  }
+
   /* Keep touch rails oriented to the active location. */
   const centerActiveRailItems = () => {
     if (!window.matchMedia('(max-width:1120px)').matches) return;
